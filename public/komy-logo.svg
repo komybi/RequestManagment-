@@ -1,0 +1,32 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Circle -->
+  <circle cx="100" cy="100" r="90" fill="url(#logoGradient)" />
+  
+  <!-- Document Icon -->
+  <rect x="55" y="45" width="90" height="110" rx="8" fill="white" opacity="0.95"/>
+  
+  <!-- Document Lines -->
+  <rect x="70" y="65" width="60" height="4" rx="2" fill="#4f46e5"/>
+  <rect x="70" y="78" width="60" height="4" rx="2" fill="#4f46e5"/>
+  <rect x="70" y="91" width="45" height="4" rx="2" fill="#4f46e5"/>
+  <rect x="70" y="104" width="50" height="4" rx="2" fill="#4f46e5"/>
+  
+  <!-- Graduation Cap Icon -->
+  <path d="M 70 125 L 100 115 L 130 125 L 100 135 Z" fill="#4f46e5"/>
+  <rect x="95" y="125" width="10" height="15" fill="#4f46e5"/>
+  
+  <!-- Small "k" and "U" letters -->
+  <text x="65" y="40" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">k</text>
+  <text x="120" y="40" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">U</text>
+  
+  <!-- Bottom text "Docs" -->
+  <text x="85" y="175" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Docs</text>
+  <text x="115" y="175" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Hub</text>
+</svg>
