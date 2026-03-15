@@ -32,7 +32,23 @@ export default function LoginForm() {
         return;
       }
 
-      router.push('/dashboard');
+      // Redirect to appropriate dashboard based on user role
+      const userRole = (result as any)?.user?.role;
+      switch (userRole) {
+        case 'admin':
+          router.push('/admin');
+          break;
+        case 'registrar':
+          router.push('/registrar');
+          break;
+        case 'revenue':
+          router.push('/revenue');
+          break;
+        case 'student':
+        default:
+          router.push('/dashboard');
+          break;
+      }
     } catch (err) {
       setError('An error occurred. Please try again.');
     } finally {

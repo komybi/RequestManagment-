@@ -120,6 +120,8 @@ export default function RegisterForm() {
               <SelectContent>
                 <SelectItem value="student">Student</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="registrar">Registrar</SelectItem>
+                <SelectItem value="revenue">Revenue</SelectItem>
               </SelectContent>
             </Select>
           </div>
