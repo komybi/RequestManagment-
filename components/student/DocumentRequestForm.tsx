@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function DocumentRequestForm() {
+  console.log('DocumentRequestForm component loaded - updated version');
   const { data: session } = useSession();
   const [documentType, setDocumentType] = useState('');
   const [quantity, setQuantity] = useState('1');
@@ -22,6 +23,7 @@ export default function DocumentRequestForm() {
   const [program, setProgram] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [academicYear, setAcademicYear] = useState('');
+  const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [userData, setUserData] = useState({
@@ -33,6 +35,14 @@ export default function DocumentRequestForm() {
     phoneNumber: '',
     year: ''
   });
+
+  // Initialize form fields with user data when it's fetched
+  useEffect(() => {
+    if (userData.department) setDepartment(userData.department);
+    if (userData.program) setProgram(userData.program);
+    if (userData.phoneNumber) setPhoneNumber(userData.phoneNumber);
+    if (userData.year) setAcademicYear(userData.year);
+  }, [userData]);
   const router = useRouter();
 
   // Fetch user data from database
@@ -60,22 +70,52 @@ export default function DocumentRequestForm() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/documents', {
+      const endpoint = '/api/requests';
+      const timestamp = new Date().toISOString();
+      console.log(`[${timestamp}] Submitting to endpoint: ${endpoint}`);
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          requestType: 'DOCUMENT',
           documentType,
           quantity: parseInt(quantity),
           department,
           program,
           phoneNumber,
           academicYear,
+          description,
+          deliveryMethod: 'EMAIL',
         }),
       });
 
       if (!response.ok) {
-        setError('Failed to submit request. Please try again.');
+        let errorMessage = `Failed to submit request. Please try again. (${response.status})`;
+        
+        try {
+          const errorData = await response.json();
+          console.error('Document request submission error:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData,
+            responseType: response.headers.get('content-type'),
+            responseUrl: response.url
+          });
+          errorMessage = errorData.message || errorMessage;
+        } catch (jsonError) {
+          console.error('Failed to parse error response as JSON:', jsonError);
+          console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+          console.error('Response type:', response.type);
+          console.error('Response url:', response.url);
+          console.error('Response status:', response.status);
+          console.error('Response text:', await response.text());
+        }
+        
+        setError(errorMessage);
       } else {
+        const result = await response.json();
+        console.log('Document request submitted successfully:', result);
         // Show success alert
         alert('Document request submitted successfully!');
         router.refresh();
@@ -85,6 +125,7 @@ export default function DocumentRequestForm() {
         setProgram('');
         setPhoneNumber('');
         setAcademicYear('');
+        setDescription('');
       }
     } catch (err) {
       setError('Failed to submit request. Please try again.');
@@ -186,17 +227,27 @@ export default function DocumentRequestForm() {
             </div>
           </div>
           <div>
+            <label className="text-sm font-medium text-blue-700">Description</label>
+            <textarea
+              placeholder="Describe your document request in detail"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              className="mt-1 w-full p-2 border border-blue-200 rounded-md text-black"
+              rows={3}
+            />
+          </div>
+          <div>
             <label className="text-sm font-medium text-blue-700">Document Type</label>
             <Select value={documentType} onValueChange={setDocumentType}>
               <SelectTrigger className="mt-1 bg-white border-blue-200 text-black">
                 <SelectValue placeholder="Select document type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="transcript">Transcript</SelectItem>
-                <SelectItem value="certificate">Certificate</SelectItem>
-                <SelectItem value="character">Character Certificate</SelectItem>
-                <SelectItem value="coursework">Coursework</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="TRANSCRIPT">Transcript</SelectItem>
+                <SelectItem value="CERTIFICATE">Certificate</SelectItem>
+                <SelectItem value="ENROLLMENT_LETTER">Enrollment Letter</SelectItem>
+                <SelectItem value="RECOMMENDATION_LETTER">Recommendation Letter</SelectItem>
               </SelectContent>
             </Select>
           </div>

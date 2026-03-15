@@ -32,7 +32,7 @@ export default function RevenueTable() {
 
   async function fetchRequests() {
     try {
-      const response = await fetch('/api/requests?status=APPROVED');
+      const response = await fetch('/api/requests?status=REVENUE_REVIEW');
       if (response.ok) {
         const data = await response.json();
         setRequests(data);

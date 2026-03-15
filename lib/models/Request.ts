@@ -5,7 +5,7 @@ export interface IRequest extends Document {
   studentId: mongoose.Types.ObjectId;
   requestType: 'ID_REPLACEMENT' | 'DOCUMENT';
   documentType?: 'TRANSCRIPT' | 'CERTIFICATE' | 'ENROLLMENT_LETTER' | 'RECOMMENDATION_LETTER';
-  status: 'PENDING' | 'PROCESSING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'PROCESSING' | 'APPROVED' | 'REJECTED' | 'REVENUE_REVIEW';
   paymentFile?: string;
   paymentVerified: boolean;
   adminComment?: string;
@@ -13,6 +13,12 @@ export interface IRequest extends Document {
   deliveryDate?: Date;
   registrarNotes?: string;
   trackingNumber: string;
+  urgency?: 'Normal' | 'Urgent';
+  purpose?: string;
+  sentToRevenueAt?: Date;
+  revenueLetterId?: string;
+  revenueProcessedAt?: Date;
+  revenueReceipt?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,7 +41,7 @@ const requestSchema = new Schema<IRequest>(
     },
     status: {
       type: String,
-      enum: ['PENDING', 'PROCESSING', 'APPROVED', 'REJECTED'],
+      enum: ['PENDING', 'PROCESSING', 'APPROVED', 'REJECTED', 'REVENUE_REVIEW'],
       default: 'PENDING',
     },
     paymentFile: {
@@ -63,6 +69,26 @@ const requestSchema = new Schema<IRequest>(
       type: String,
       unique: true,
       required: true,
+    },
+    urgency: {
+      type: String,
+      enum: ['Normal', 'Urgent'],
+      default: 'Normal',
+    },
+    purpose: {
+      type: String,
+    },
+    sentToRevenueAt: {
+      type: Date,
+    },
+    revenueLetterId: {
+      type: String,
+    },
+    revenueProcessedAt: {
+      type: Date,
+    },
+    revenueReceipt: {
+      type: String,
     },
   },
   {

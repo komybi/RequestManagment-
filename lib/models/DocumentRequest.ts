@@ -5,8 +5,7 @@ export interface IDocumentRequest extends Document {
   studentId: mongoose.Types.ObjectId;
   studentName: string;
   documentType: string;
-  description: string;
-  purpose: string;
+  description?: string;
   quantity: number;
   department?: string;
   program?: string;
@@ -42,11 +41,6 @@ const documentRequestSchema = new Schema<IDocumentRequest>(
     },
     description: {
       type: String,
-      required: true,
-    },
-    purpose: {
-      type: String,
-      required: true,
     },
     quantity: {
       type: Number,

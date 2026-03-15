@@ -1,4 +1,6 @@
-import { auth } from '@/lib/auth';
+'use client';
+
+import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 import DashboardNav from '@/components/layout/DashboardNav';
 import RequestTypeSelector from '@/components/student/RequestTypeSelector';
@@ -15,23 +17,57 @@ import { Progress } from '@/components/ui/progress';
 import { Calendar, Clock, FileText, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import RequestsList from '@/components/student/RequestsList';
 import SignOutButton from '@/components/SignOutButton';
+import { useEffect, useState } from 'react';
 
-export const metadata = {
-  title: 'Dashboard - Document Management',
-  description: 'Manage your document requests',
-};
+interface DashboardStats {
+  pending: number;
+  processing: number;
+  approved: number;
+  rejected: number;
+}
 
-export default async function DashboardPage() {
-  const session = await auth();
+export default function DashboardPage() {
+  const { data: session, status } = useSession();
+  const [stats, setStats] = useState<DashboardStats>({
+    pending: 0,
+    processing: 0,
+    approved: 0,
+    rejected: 0
+  });
 
-  if (!session) {
-    redirect('/auth/login');
-  }
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const response = await fetch('/api/dashboard/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+      }
+    }
 
-  // Only allow students to access this page
-  if (session.user?.role !== 'student') {
-    redirect('/auth/login');
-  }
+    if (session) {
+      fetchStats();
+    }
+  }, [session]);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const response = await fetch('/api/dashboard/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+      }
+    }
+
+    fetchStats();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -69,49 +105,49 @@ export default async function DashboardPage() {
           </Card>
         </div>
 
-        {/* Status Cards - One Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* Status Cards - 4 Cards in One Row, Minimized Size */}
+        <div className="grid grid-cols-4 gap-4 mb-8">
           {/* Pending Requests Card */}
           <Card className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-4 text-center">
+            <CardContent className="p-3 text-center">
               <div className="flex justify-center mb-2">
-                <Clock className="w-6 h-6 text-orange-500" />
+                <Clock className="w-5 h-5 text-orange-500" />
               </div>
-              <div className="text-2xl font-bold text-gray-800 mb-1">1</div>
-              <div className="text-xs text-gray-600">Awaiting review</div>
+              <div className="text-xl font-bold text-gray-800 mb-1">{stats.pending}</div>
+              <div className="text-xs text-gray-600">Pending</div>
             </CardContent>
           </Card>
 
           {/* Processing Card */}
           <Card className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-4 text-center">
+            <CardContent className="p-3 text-center">
               <div className="flex justify-center mb-2">
-                <AlertCircle className="w-6 h-6 text-blue-500" />
+                <AlertCircle className="w-5 h-5 text-blue-500" />
               </div>
-              <div className="text-2xl font-bold text-gray-800 mb-1">0</div>
-              <div className="text-xs text-gray-600">In progress</div>
+              <div className="text-xl font-bold text-gray-800 mb-1">{stats.processing}</div>
+              <div className="text-xs text-gray-600">Processing</div>
             </CardContent>
           </Card>
 
           {/* Approved Card */}
           <Card className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-4 text-center">
+            <CardContent className="p-3 text-center">
               <div className="flex justify-center mb-2">
-                <CheckCircle className="w-6 h-6 text-green-500" />
+                <CheckCircle className="w-5 h-5 text-green-500" />
               </div>
-              <div className="text-2xl font-bold text-gray-800 mb-1">0</div>
-              <div className="text-xs text-gray-600">This month</div>
+              <div className="text-xl font-bold text-gray-800 mb-1">{stats.approved}</div>
+              <div className="text-xs text-gray-600">Approved</div>
             </CardContent>
           </Card>
 
           {/* Rejected Card */}
           <Card className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-4 text-center">
+            <CardContent className="p-3 text-center">
               <div className="flex justify-center mb-2">
-                <XCircle className="w-6 h-6 text-red-500" />
+                <XCircle className="w-5 h-5 text-red-500" />
               </div>
-              <div className="text-2xl font-bold text-gray-800 mb-1">0</div>
-              <div className="text-xs text-gray-600">This month</div>
+              <div className="text-xl font-bold text-gray-800 mb-1">{stats.rejected}</div>
+              <div className="text-xs text-gray-600">Rejected</div>
             </CardContent>
           </Card>
         </div>

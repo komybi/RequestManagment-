@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import RequestsTable from '@/components/admin/RequestsTable';
 import UserManagement from '@/components/admin/UserManagement';
+import DashboardNav from '@/components/layout/DashboardNav';
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
@@ -51,13 +52,8 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-card border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage users and system settings</p>
-        </div>
-      </header>
-
+      <DashboardNav title="Admin Dashboard" role="admin" />
+      
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           <Card>

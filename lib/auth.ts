@@ -3,7 +3,7 @@ import Credentials from 'next-auth/providers/credentials';
 import dbConnect from './db';
 import User from './models/User';
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+const nextAuthConfig = {
   session: {
     strategy: 'jwt',
   },
@@ -69,4 +69,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
   },
-});
+};
+
+export const { handlers, auth, signIn, signOut } = NextAuth(nextAuthConfig);
+export const authOptions = nextAuthConfig;

@@ -1,10 +1,12 @@
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: process.env.EMAIL_HOST,
+  port: parseInt(process.env.EMAIL_PORT || '587'),
+  secure: false, // true for 465, false for other ports
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
@@ -16,15 +18,21 @@ interface EmailParams {
 
 export async function sendEmail({ to, subject, html }: EmailParams) {
   try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
       to,
       subject,
       html,
     });
-    console.log(`Email sent to ${to}`);
+    
+    console.log(`Email sent successfully to ${to}`);
+    console.log(`Message ID: ${info.messageId}`);
+    console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+    
+    return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error('Email sending error:', error);
+    throw error;
   }
 }
 
