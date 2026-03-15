@@ -6,6 +6,11 @@ export interface IUser extends Document {
   password: string;
   name: string;
   studentId?: string;
+  image?: string;
+  department?: string;
+  program?: string;
+  phoneNumber?: string;
+  year?: string;
   role: 'student' | 'admin' | 'registrar' | 'revenue';
   createdAt: Date;
   updatedAt: Date;
@@ -28,6 +33,26 @@ const userSchema = new Schema<IUser>(
       required: true,
     },
     studentId: {
+      type: String,
+      sparse: true,
+    },
+    image: {
+      type: String,
+      sparse: true,
+    },
+    department: {
+      type: String,
+      sparse: true,
+    },
+    program: {
+      type: String,
+      sparse: true,
+    },
+    phoneNumber: {
+      type: String,
+      sparse: true,
+    },
+    year: {
       type: String,
       sparse: true,
     },

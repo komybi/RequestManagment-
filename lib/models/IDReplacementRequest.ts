@@ -1,30 +1,29 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface IDocumentRequest extends Document {
+export interface IIDReplacementRequest extends Document {
   _id: mongoose.Types.ObjectId;
   studentId: mongoose.Types.ObjectId;
   studentName: string;
-  documentType: string;
+  requestType: string;
+  reason: string;
   description: string;
-  purpose: string;
-  quantity: number;
+  replacementType: string;
   department?: string;
   program?: string;
   phoneNumber?: string;
   academicYear?: string;
   status: 'pending' | 'approved' | 'rejected' | 'completed';
-  paymentStatus: 'unpaid' | 'paid';
-  amount: number;
+  paymentVerified: boolean;
+  receiptPath?: string;
   rejectionReason?: string;
   approvedBy?: mongoose.Types.ObjectId;
   approvedAt?: Date;
-  qrCode?: string;
   trackingNumber: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const documentRequestSchema = new Schema<IDocumentRequest>(
+const idReplacementRequestSchema = new Schema<IIDReplacementRequest>(
   {
     studentId: {
       type: Schema.Types.ObjectId,
@@ -35,22 +34,23 @@ const documentRequestSchema = new Schema<IDocumentRequest>(
       type: String,
       required: true,
     },
-    documentType: {
+    requestType: {
       type: String,
       required: true,
-      enum: ['transcript', 'certificate', 'character', 'coursework', 'other'],
+      default: 'ID_REPLACEMENT',
+    },
+    reason: {
+      type: String,
+      required: true,
     },
     description: {
       type: String,
       required: true,
     },
-    purpose: {
+    replacementType: {
       type: String,
       required: true,
-    },
-    quantity: {
-      type: Number,
-      default: 1,
+      enum: ['lost', 'damaged', 'stolen', 'name-change'],
     },
     department: {
       type: String,
@@ -69,14 +69,12 @@ const documentRequestSchema = new Schema<IDocumentRequest>(
       enum: ['pending', 'approved', 'rejected', 'completed'],
       default: 'pending',
     },
-    paymentStatus: {
-      type: String,
-      enum: ['unpaid', 'paid'],
-      default: 'unpaid',
+    paymentVerified: {
+      type: Boolean,
+      default: false,
     },
-    amount: {
-      type: Number,
-      default: 0,
+    receiptPath: {
+      type: String,
     },
     rejectionReason: String,
     approvedBy: {
@@ -84,11 +82,10 @@ const documentRequestSchema = new Schema<IDocumentRequest>(
       ref: 'User',
     },
     approvedAt: Date,
-    qrCode: String,
     trackingNumber: {
       type: String,
       unique: true,
-      default: () => `DOC-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      default: () => `ID-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
     },
   },
   {
@@ -96,5 +93,5 @@ const documentRequestSchema = new Schema<IDocumentRequest>(
   }
 );
 
-export default (mongoose.models && mongoose.models.DocumentRequest) ||
-  mongoose.model<IDocumentRequest>('DocumentRequest', documentRequestSchema);
+export default (mongoose.models && mongoose.models.IDReplacementRequest) ||
+  mongoose.model<IIDReplacementRequest>('IDReplacementRequest', idReplacementRequestSchema);

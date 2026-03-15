@@ -6,6 +6,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { 
+  FileText, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  Bell, 
+  Send,
+  Users,
+  AlertTriangle,
+  Package,
+  CreditCard
+} from 'lucide-react';
 
 interface Request {
   _id: string;
@@ -17,12 +30,19 @@ interface Request {
   createdAt: string;
   paymentFile?: string;
   department?: string;
+  program?: string;
+  phoneNumber?: string;
+  academicYear?: string;
   costShareStatus?: string;
   clearanceStatus?: string;
   uploadedForm?: string;
   paymentProof?: string;
   registrarNotes?: string;
   deliveryDate?: string;
+  reason?: string;
+  replacementType?: string;
+  amount?: number;
+  paymentMethod?: string;
 }
 
 export default function RegistrarTable() {
@@ -31,6 +51,7 @@ export default function RegistrarTable() {
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
   const [deliveryDate, setDeliveryDate] = useState('');
   const [notes, setNotes] = useState('');
+  const [filter, setFilter] = useState<'all' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED'>('all');
 
   useEffect(() => {
     fetchRequests();
@@ -38,10 +59,16 @@ export default function RegistrarTable() {
 
   async function fetchRequests() {
     try {
-      const response = await fetch('/api/requests?status=PENDING,PROCESSING');
+      const response = await fetch('/api/requests?role=registrar');
       if (response.ok) {
         const data = await response.json();
-        setRequests(data);
+        
+        // Filter only student requests
+        const studentRequests = data.filter((req: Request) => 
+          req.studentId && req.studentId.email && req.studentId.email.includes('@')
+        );
+        
+        setRequests(studentRequests);
       }
     } catch (error) {
       console.error('Failed to fetch requests:', error);
@@ -65,13 +92,8 @@ export default function RegistrarTable() {
       });
 
       if (response.ok) {
-        // Send notification to student
-        await sendStudentNotification(selectedRequest, 'approved');
-        
-        // If document request, send to revenue office
-        if (selectedRequest.requestType === 'DOCUMENT') {
-          await sendToRevenueOffice(selectedRequest);
-        }
+        // Send email notification to student
+        await sendStudentEmail(selectedRequest, 'approved');
         
         fetchRequests();
         setSelectedRequest(null);
@@ -97,8 +119,8 @@ export default function RegistrarTable() {
       });
 
       if (response.ok) {
-        // Send notification to student
-        await sendStudentNotification(selectedRequest, 'rejected');
+        // Send email notification to student
+        await sendStudentEmail(selectedRequest, 'rejected');
         
         fetchRequests();
         setSelectedRequest(null);
@@ -109,17 +131,25 @@ export default function RegistrarTable() {
     }
   }
 
-  async function sendStudentNotification(request: Request, action: 'approved' | 'rejected') {
+  async function sendStudentEmail(request: Request, action: 'approved' | 'rejected') {
     try {
-      const message = action === 'approved' 
-        ? `Your ${request.requestType.toLowerCase()} request has been ${action}. ${request.requestType === 'ID_REPLACEMENT' ? `Your new ID card will be delivered on ${request.deliveryDate}.` : 'Your request is currently under review.'}`
-        : `Your ${request.requestType.toLowerCase()} request has been ${action}. Reason: ${request.registrarNotes || 'No reason provided'}`;
+      let message = '';
+      
+      if (action === 'approved') {
+        if (request.requestType === 'ID_REPLACEMENT') {
+          message = `ID Replacement: Your new ID will be delivered on ${request.deliveryDate}`;
+        } else {
+          message = `Document Request: Your request is currently being processed`;
+        }
+      } else {
+        message = `Your ${request.requestType.toLowerCase()} request has been ${action}. Reason: ${request.registrarNotes || 'No reason provided'}`;
+      }
       
       await fetch('/api/notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: request.studentId._id,
+          userId: request.studentId?._id,
           message,
           requestId: request._id,
         }),
@@ -129,123 +159,227 @@ export default function RegistrarTable() {
     }
   }
 
-  async function sendToRevenueOffice(request: Request) {
-    try {
-      await fetch('/api/revenue/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          requestId: request._id,
-          studentName: request.studentId.name,
-          studentId: request.studentId.studentId,
-          requestType: request.requestType,
-          documentType: request.documentType,
-          paymentProof: request.paymentProof,
-        }),
-      });
-    } catch (error) {
-      console.error('Failed to send to revenue office:', error);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'APPROVED':
+        return 'bg-green-100 text-green-800';
+      case 'REJECTED':
+        return 'bg-red-100 text-red-800';
+      case 'COMPLETED':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
-  if (loading) {
-    return <div className="text-center py-4">Loading requests...</div>;
-  }
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return <Clock className="w-4 h-4" />;
+      case 'APPROVED':
+        return <CheckCircle className="w-4 h-4" />;
+      case 'REJECTED':
+        return <XCircle className="w-4 h-4" />;
+      case 'COMPLETED':
+        return <CheckCircle className="w-4 h-4" />;
+      default:
+        return <AlertTriangle className="w-4 h-4" />;
+    }
+  };
 
-  if (requests.length === 0) {
-    return <div className="text-center py-4 text-muted-foreground">No pending requests</div>;
-  }
+  const filteredRequests = filter === 'all' 
+    ? requests 
+    : requests.filter(req => req.status === filter);
 
   return (
-    <>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-muted">
-            <tr>
-              <th className="px-4 py-2 text-left">Student Name</th>
-              <th className="px-4 py-2 text-left">Student ID</th>
-              <th className="px-4 py-2 text-left">Department</th>
-              <th className="px-4 py-2 text-left">Request Type</th>
-              <th className="px-4 py-2 text-left">Document Type</th>
-              <th className="px-4 py-2 text-left">Payment Proof</th>
-              <th className="px-4 py-2 text-left">Cost Share Status</th>
-              <th className="px-4 py-2 text-left">Clearance Status</th>
-              <th className="px-4 py-2 text-left">Request Date</th>
-              <th className="px-4 py-2 text-left">Current Status</th>
-              <th className="px-4 py-2 text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {requests.map((request) => (
-              <tr key={request._id} className="border-t">
-                <td className="px-4 py-3">
-                  <p className="font-medium">{request.studentId.name}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <p className="text-sm">{request.studentId.studentId || 'N/A'}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <p className="text-sm">{request.department || 'N/A'}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <Badge variant="outline">
-                    {request.requestType}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3">
-                  <Badge variant="outline">
-                    {request.documentType || 'N/A'}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3">
-                  {request.paymentProof ? (
-                    <Button variant="outline" size="sm">
-                      View Receipt
-                    </Button>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">Not uploaded</span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <Badge variant={request.costShareStatus === 'VERIFIED' ? 'default' : 'secondary'}>
-                    {request.costShareStatus || 'N/A'}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3">
-                  <Badge variant={request.clearanceStatus === 'COMPLETE' ? 'default' : 'secondary'}>
-                    {request.clearanceStatus || 'N/A'}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  {new Date(request.createdAt).toLocaleDateString()}
-                </td>
-                <td className="px-4 py-3">
-                  <Badge className={getStatusColor(request.status)}>
-                    {request.status}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSelectedRequest(request)}
-                  >
-                    Review
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="space-y-6">
+      {/* Header with Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Student Request Management
+          </CardTitle>
+          <CardDescription>
+            Review and manage student document and ID replacement requests
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4 mb-6">
+            <Button 
+              onClick={() => setFilter('all')}
+              variant={filter === 'all' ? 'default' : 'outline'}
+              size="sm"
+            >
+              All Requests ({requests.length})
+            </Button>
+            <Button 
+              onClick={() => setFilter('PENDING')}
+              variant={filter === 'PENDING' ? 'default' : 'outline'}
+              size="sm"
+            >
+              Pending ({requests.filter(r => r.status === 'PENDING').length})
+            </Button>
+            <Button 
+              onClick={() => setFilter('APPROVED')}
+              variant={filter === 'APPROVED' ? 'default' : 'outline'}
+              size="sm"
+            >
+              Approved ({requests.filter(r => r.status === 'APPROVED').length})
+            </Button>
+            <Button 
+              onClick={() => setFilter('REJECTED')}
+              variant={filter === 'REJECTED' ? 'default' : 'outline'}
+              size="sm"
+            >
+              Rejected ({requests.filter(r => r.status === 'REJECTED').length})
+            </Button>
+          </div>
 
+          {/* Common Tasks */}
+          <div className="border-t pt-4">
+            <h4 className="font-semibold mb-3">Common Tasks</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Button variant="outline" className="justify-start">
+                <Send className="w-4 h-4 mr-2" />
+                Send Bulk Notifications
+              </Button>
+              <Button variant="outline" className="justify-start">
+                <Package className="w-4 h-4 mr-2" />
+                Generate Reports
+              </Button>
+              <Button variant="outline" className="justify-start">
+                <CreditCard className="w-4 h-4 mr-2" />
+                Manage Payments
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Requests Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Student Requests</CardTitle>
+          <CardDescription>
+            {filter === 'all' 
+              ? 'All student requests' 
+              : `${filter.charAt(0).toUpperCase() + filter.slice(1)} student requests`
+            } - {filteredRequests.length} items
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600">Loading requests...</p>
+            </div>
+          ) : filteredRequests.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-600">No {filter === 'all' ? 'student' : filter} requests found</p>
+              <p className="text-sm text-gray-500">
+                {filter === 'all' 
+                  ? 'Student requests will appear here once submitted'
+                  : `No ${filter} requests at this time`
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-3 text-left">Student</th>
+                    <th className="px-4 py-3 text-left">Request Type</th>
+                    <th className="px-4 py-3 text-left">Document Type</th>
+                    <th className="px-4 py-3 text-left">Status</th>
+                    <th className="px-4 py-3 text-left">Payment</th>
+                    <th className="px-4 py-3 text-left">Date</th>
+                    <th className="px-4 py-3 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRequests.map((request) => (
+                    <tr key={request._id} className="border-t hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div>
+                          <p className="font-medium">{request.studentId?.name ?? 'N/A'}</p>
+                          <p className="text-xs text-gray-500">{request.studentId?.email ?? 'N/A'}</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge variant={request.status === 'PENDING' ? 'secondary' : 'default'}>
+                          {request.requestType === 'ID_REPLACEMENT' ? 'ID Replacement' : 'Document'}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="text-sm">{request.documentType || 'N/A'}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(request.status)}
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
+                            {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm">
+                          {request.paymentFile ? (
+                            <a 
+                              href={request.paymentFile} 
+                              target="_blank" 
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              View Receipt
+                            </a>
+                          ) : (
+                            <span className="text-gray-500">Not uploaded</span>
+                          )}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {new Date(request.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => setSelectedRequest(request)}
+                            disabled={request.status !== 'PENDING'}
+                          >
+                            Review
+                          </Button>
+                          {request.status === 'APPROVED' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/api/requests/${request._id}/download`, '_blank')}
+                            >
+                              Download
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Review Dialog */}
       {selectedRequest && (
-        <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && setSelectedRequest(null)}>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Verify Student Request</DialogTitle>
+              <DialogTitle>Review Student Request</DialogTitle>
             </DialogHeader>
-
             <div className="space-y-6">
               {/* Student Information */}
               <div>
@@ -253,11 +387,23 @@ export default function RegistrarTable() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Name</label>
-                    <p className="p-2 bg-muted rounded">{selectedRequest.studentId.name}</p>
+                    <p className="p-2 bg-muted rounded">{selectedRequest.studentId?.name ?? 'N/A'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Student ID</label>
-                    <p className="p-2 bg-muted rounded">{selectedRequest.studentId.studentId || 'N/A'}</p>
+                    <p className="p-2 bg-muted rounded">{selectedRequest.studentId?.studentId ?? 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Email</label>
+                    <p className="p-2 bg-muted rounded">{selectedRequest.studentId?.email ?? 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Department</label>
+                    <p className="p-2 bg-muted rounded">{selectedRequest.department || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Program</label>
+                    <p className="p-2 bg-muted rounded">{selectedRequest.program || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -268,137 +414,106 @@ export default function RegistrarTable() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Request Type</label>
-                    <p className="p-2 bg-muted rounded">{selectedRequest.requestType}</p>
+                    <p className="p-2 bg-muted rounded">
+                      {selectedRequest.requestType === 'ID_REPLACEMENT' ? 'ID Replacement' : 'Document Request'}
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Document Type</label>
                     <p className="p-2 bg-muted rounded">{selectedRequest.documentType || 'N/A'}</p>
                   </div>
-                </div>
-              </div>
-
-              {/* Verification Status */}
-              <div>
-                <h4 className="font-semibold mb-3">Verification Status</h4>
-                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Cost Share Status</label>
-                    <Badge variant={selectedRequest.costShareStatus === 'VERIFIED' ? 'default' : 'secondary'}>
-                      {selectedRequest.costShareStatus || 'NOT APPLICABLE'}
-                    </Badge>
+                    <label className="block text-sm font-medium mb-1">Status</label>
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(selectedRequest.status)}
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedRequest.status)}`}>
+                        {selectedRequest.status.charAt(0).toUpperCase() + selectedRequest.status.slice(1)}
+                      </span>
+                    </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Clearance Status</label>
-                    <Badge variant={selectedRequest.clearanceStatus === 'COMPLETE' ? 'default' : 'secondary'}>
-                      {selectedRequest.clearanceStatus || 'NOT APPLICABLE'}
-                    </Badge>
+                    <label className="block text-sm font-medium mb-1">Payment Proof</label>
+                    {selectedRequest.paymentFile ? (
+                      <a 
+                        href={selectedRequest.paymentFile} 
+                        target="_blank" 
+                        className="text-blue-600 hover:text-blue-800 underline text-sm"
+                      >
+                        View Receipt
+                      </a>
+                    ) : (
+                      <span className="text-gray-500 text-sm">Not uploaded</span>
+                    )}
                   </div>
-                </div>
-              </div>
-
-              {/* Payment Verification */}
-              <div>
-                <h4 className="font-semibold mb-3">Payment Verification</h4>
-                {selectedRequest.paymentProof ? (
-                  <Button variant="outline" className="w-full">
-                    View Payment Proof
-                  </Button>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No payment proof uploaded</p>
-                )}
-              </div>
-
-              {/* Requirements Check */}
-              <div>
-                <h4 className="font-semibold mb-3">Requirements Check</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">Student Information:</span>
-                    <Badge variant="outline">✓ Complete</Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">Uploaded Request Form:</span>
-                    <Badge variant={selectedRequest.uploadedForm ? 'default' : 'destructive'}>
-                      {selectedRequest.uploadedForm ? '✓ Uploaded' : '✗ Missing'}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">Payment Proof:</span>
-                    <Badge variant={selectedRequest.paymentProof ? 'default' : 'destructive'}>
-                      {selectedRequest.paymentProof ? '✓ Uploaded' : '✗ Missing'}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">Cost Sharing Balance:</span>
-                    <Badge variant={selectedRequest.costShareStatus === 'VERIFIED' ? 'default' : 'destructive'}>
-                      {selectedRequest.costShareStatus === 'VERIFIED' ? '✓ Cleared' : '✗ Outstanding'}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">Clearance Status:</span>
-                    <Badge variant={selectedRequest.clearanceStatus === 'COMPLETE' ? 'default' : 'destructive'}>
-                      {selectedRequest.clearanceStatus === 'COMPLETE' ? '✓ Complete' : '✗ Incomplete'}
-                    </Badge>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Request Date</label>
+                    <p className="p-2 bg-muted rounded">{new Date(selectedRequest.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Actions */}
-              <div>
-                <h4 className="font-semibold mb-3">Registrar Actions</h4>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Delivery Date</label>
-                    <Input
-                      type="date"
-                      value={deliveryDate}
-                      onChange={(e) => setDeliveryDate(e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Comments</label>
-                    <Textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Add comments or request additional information..."
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button onClick={handleApprove} className="flex-1">
-                      Approve Request
-                    </Button>
-                    <Button
-                      onClick={handleReject}
-                      variant="destructive"
-                      className="flex-1"
-                    >
-                      Reject Request
-                    </Button>
+              {/* Action Section */}
+              {selectedRequest.status === 'PENDING' && (
+                <div>
+                  <h4 className="font-semibold mb-3">Take Action</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Delivery Date (for approved requests)</label>
+                      <Input
+                        type="date"
+                        value={deliveryDate}
+                        onChange={(e) => setDeliveryDate(e.target.value)}
+                        placeholder="Enter delivery date"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Registrar Notes</label>
+                      <Textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Enter notes or reason for decision"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <Button onClick={handleApprove} disabled={!deliveryDate}>
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Approve
+                      </Button>
+                      <Button variant="destructive" onClick={handleReject}>
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Reject
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Status Message */}
+              {selectedRequest.status === 'APPROVED' && (
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-green-800 mb-2">Request Approved</h4>
+                  <p className="text-green-700">
+                    {selectedRequest.requestType === 'ID_REPLACEMENT' 
+                      ? `Student's ID replacement request has been approved. New ID will be delivered on ${selectedRequest.deliveryDate}.`
+                      : 'Student document request has been approved and is being processed.'
+                    }
+                  </p>
+                </div>
+              )}
+
+              {selectedRequest.status === 'REJECTED' && (
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-red-800 mb-2">Request Rejected</h4>
+                  <p className="text-red-700">
+                    Reason: {selectedRequest.registrarNotes || 'No reason provided'}
+                  </p>
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>
       )}
-    </>
+    </div>
   );
-}
-
-function getStatusColor(status: string) {
-  switch (status) {
-    case 'PENDING':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'PROCESSING':
-      return 'bg-blue-100 text-blue-800';
-    case 'APPROVED':
-      return 'bg-green-100 text-green-800';
-    case 'REJECTED':
-      return 'bg-red-100 text-red-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
 }

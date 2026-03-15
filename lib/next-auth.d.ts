@@ -8,6 +8,7 @@ declare module 'next-auth' {
       name: string;
       role: 'student' | 'admin' | 'registrar' | 'revenue';
       studentId?: string;
+      image?: string;
     };
   }
 
@@ -17,11 +18,13 @@ declare module 'next-auth' {
     name: string;
     role: 'student' | 'admin' | 'registrar' | 'revenue';
     studentId?: string;
+    image?: string;
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
     role: 'student' | 'admin' | 'registrar' | 'revenue';
+    studentId?: string;
   }
 }

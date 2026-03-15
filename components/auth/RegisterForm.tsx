@@ -33,7 +33,13 @@ export default function RegisterForm() {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, role, studentId: role === 'student' ? studentId : undefined }),
+        body: JSON.stringify({ 
+          name, 
+          email, 
+          password, 
+          role, 
+          studentId: role === 'student' ? studentId : undefined
+        }),
       });
 
       if (!response.ok) {
@@ -51,71 +57,73 @@ export default function RegisterForm() {
   }
 
   return (
-    <Card className="w-full border border-border bg-card/50 backdrop-blur">
-      <CardHeader className="space-y-3">
+    <Card className="w-full border border-purple-200 bg-white/90 backdrop-blur-md shadow-2xl hover:shadow-3xl transition-shadow duration-300">
+      <CardHeader className="space-y-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-t-lg">
         <div className="space-y-1">
-          <CardTitle className="text-2xl">Create Account</CardTitle>
-          <CardDescription>Join DocHub to start requesting documents</CardDescription>
+          <CardTitle className="text-2xl text-gray-900">Create Account</CardTitle>
+          <CardDescription className="text-gray-600">Join komydochub to start requesting documents</CardDescription>
         </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
-            <div className="bg-destructive/10 text-destructive p-4 rounded-lg text-sm border border-destructive/20">
+            <div className="bg-red-50 text-red-700 p-4 rounded-lg text-sm border border-red-200">
               {error}
             </div>
           )}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Full Name</label>
+            <label className="text-sm font-medium text-gray-700">Full Name</label>
             <Input
               type="text"
               placeholder="John Doe"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="bg-input border-border placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
+              className="bg-white border-blue-200 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 text-black"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Email Address</label>
+            <label className="text-sm font-medium text-gray-700">Email Address</label>
             <Input
               type="email"
               placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="bg-input border-border placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
+              className="bg-white border-blue-200 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 text-black"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Password</label>
+            <label className="text-sm font-medium text-gray-700">Password</label>
             <Input
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="bg-input border-border placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
+              className="bg-white border-blue-200 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 text-black"
             />
           </div>
           {role === 'student' && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Student ID</label>
-              <Input
-                type="text"
-                placeholder="STU123456"
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
-                required
-                className="bg-input border-border placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
-              />
-            </div>
+            <>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Student ID</label>
+                <Input
+                  type="text"
+                  placeholder="STU123456"
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
+                  required
+                  className="bg-white border-blue-200 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 text-black"
+                />
+              </div>
+            </>
           )}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Account Type</label>
+            <label className="text-sm font-medium text-gray-700">Account Type</label>
             <Select value={role} onValueChange={setRole}>
-              <SelectTrigger className="bg-input border-border focus:border-primary focus:ring-primary">
-                <SelectValue />
+              <SelectTrigger className="bg-white border-blue-200 focus:border-blue-500 focus:ring-blue-500">
+                <SelectValue placeholder="Select account type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="student">Student</SelectItem>
@@ -127,7 +135,7 @@ export default function RegisterForm() {
           </div>
           <Button 
             type="submit" 
-            className="w-full bg-gradient-to-r from-secondary to-primary hover:shadow-lg hover:shadow-primary/20 transition-all text-base font-medium py-5 mt-6" 
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-xl hover:shadow-purple-500/25 transition-all text-base font-medium py-4 mt-6 transform hover:scale-[1.02]" 
             disabled={loading}
           >
             {loading ? (
@@ -140,17 +148,24 @@ export default function RegisterForm() {
           </Button>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border"></div>
+              <div className="w-full border-t border-purple-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-card/50 text-muted-foreground">Already have an account?</span>
+              <span className="px-2 bg-white/90 text-purple-600">Already have an account?</span>
             </div>
           </div>
           <Link href="/auth/login">
-            <Button variant="outline" className="w-full border-border hover:bg-primary hover:text-primary-foreground transition-colors">
+            <Button variant="outline" className="w-full border-purple-200 hover:bg-purple-50 hover:text-purple-700 transition-colors">
               Sign In
             </Button>
           </Link>
+          <div className="mt-4">
+            <Link href="/">
+              <Button variant="ghost" className="w-full text-purple-600 hover:text-purple-800 hover:bg-purple-50">
+                ← Back to Home
+              </Button>
+            </Link>
+          </div>
         </form>
       </CardContent>
     </Card>

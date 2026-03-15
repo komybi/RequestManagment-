@@ -6,40 +6,47 @@ export async function middleware(request: any) {
     const session = await auth();
     const pathname = request.nextUrl.pathname;
 
-    // Public routes
+    // Public routes - no authentication needed
     if (pathname.startsWith('/auth/') || pathname.startsWith('/track')) {
       return NextResponse.next();
     }
 
-    // Check authentication for protected routes
-    if (
-      pathname.startsWith('/dashboard') ||
-      pathname.startsWith('/admin') ||
-      pathname.startsWith('/registrar') ||
-      pathname.startsWith('/revenue')
-    ) {
-      if (!session) {
-        return NextResponse.redirect(new URL('/auth/login', request.url));
-      }
+    // If user is not authenticated, redirect to login
+    if (!session) {
+      return NextResponse.redirect(new URL('/auth/login', request.url));
+    }
 
-      // Role-based access control
-      const role = (session.user as any)?.role;
+    // Get user role
+    const role = (session.user as any)?.role;
 
-      if (pathname.startsWith('/admin') && role !== 'admin') {
-        return NextResponse.redirect(new URL('/', request.url));
+    // Role-based redirection for root path
+    if (pathname === '/') {
+      switch (role) {
+        case 'admin':
+          return NextResponse.redirect(new URL('/admin', request.url));
+        case 'registrar':
+          return NextResponse.redirect(new URL('/registrar', request.url));
+        case 'revenue':
+          return NextResponse.redirect(new URL('/revenue', request.url));
+        case 'student':
+          return NextResponse.redirect(new URL('/dashboard', request.url));
+        default:
+          return NextResponse.next();
       }
+    }
 
-      if (pathname.startsWith('/registrar') && role !== 'registrar') {
-        return NextResponse.redirect(new URL('/', request.url));
-      }
-
-      if (pathname.startsWith('/revenue') && role !== 'revenue') {
-        return NextResponse.redirect(new URL('/', request.url));
-      }
-
-      if (pathname.startsWith('/dashboard') && role !== 'student') {
-        return NextResponse.redirect(new URL('/', request.url));
-      }
+    // Role-based access control for protected routes
+    if (pathname.startsWith('/admin') && role !== 'admin') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+    if (pathname.startsWith('/registrar') && role !== 'registrar') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+    if (pathname.startsWith('/revenue') && role !== 'revenue') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+    if (pathname.startsWith('/dashboard') && role !== 'student') {
+      return NextResponse.redirect(new URL('/', request.url));
     }
 
     return NextResponse.next();
@@ -50,5 +57,5 @@ export async function middleware(request: any) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/admin/:path*', '/registrar/:path*', '/revenue/:path*'],
+  matcher: ['/', '/dashboard/:path*', '/admin/:path*', '/registrar/:path*', '/revenue/:path*'],
 };

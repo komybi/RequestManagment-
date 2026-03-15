@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status');
     const role = (session.user as any)?.role;
+    const roleParam = searchParams.get('role');
 
     let query: any = {};
 
@@ -37,6 +38,8 @@ export async function GET(req: NextRequest) {
     if (role === 'student') {
       query.studentId = (session.user as any)?.id;
     }
+    // For registrar and admin, show all student requests
+    // No additional filtering needed - they see all requests
 
     const requests = await Request.find(query)
       .populate('studentId', 'name email studentId')

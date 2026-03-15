@@ -21,81 +21,59 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      const result = await signIn('credentials', {
+      await signIn('credentials', {
         email,
         password,
-        redirect: false,
+        redirect: true,
+        callbackUrl: '/', // Let middleware handle the redirection
       });
-
-      if (!result?.ok) {
-        setError('Invalid email or password');
-        return;
-      }
-
-      // Redirect to appropriate dashboard based on user role
-      const userRole = (result as any)?.user?.role;
-      switch (userRole) {
-        case 'admin':
-          router.push('/admin');
-          break;
-        case 'registrar':
-          router.push('/registrar');
-          break;
-        case 'revenue':
-          router.push('/revenue');
-          break;
-        case 'student':
-        default:
-          router.push('/dashboard');
-          break;
-      }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError('Invalid email or password');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Card className="w-full border border-border bg-card/50 backdrop-blur">
-      <CardHeader className="space-y-3">
+    <Card className="w-full border border-blue-200 bg-white/90 backdrop-blur-md shadow-2xl hover:shadow-3xl transition-shadow duration-300">
+      <CardHeader className="space-y-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-lg">
         <div className="space-y-1">
-          <CardTitle className="text-2xl">Welcome Back</CardTitle>
-          <CardDescription>Sign in to your account to continue</CardDescription>
+          <CardTitle className="text-2xl text-gray-900">Welcome Back</CardTitle>
+          <CardDescription className="text-gray-600">Sign in to your account to continue</CardDescription>
         </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
-            <div className="bg-destructive/10 text-destructive p-4 rounded-lg text-sm border border-destructive/20">
+            <div className="bg-red-50 text-red-700 p-4 rounded-lg text-sm border border-red-200">
               {error}
             </div>
           )}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Email Address</label>
+            <label className="text-sm font-medium text-gray-700">Email Address</label>
             <Input
               type="email"
               placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="bg-input border-border placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
+              className="bg-white border-blue-200 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 text-black"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Password</label>
+            <label className="text-sm font-medium text-gray-700">Password</label>
             <Input
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="bg-input border-border placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
+              className="bg-white border-blue-200 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 text-black"
             />
           </div>
           <Button 
             type="submit" 
-            className="w-full bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/20 transition-all text-base font-medium py-5" 
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:shadow-xl hover:shadow-blue-500/25 transition-all text-base font-medium py-4 transform hover:scale-[1.02]" 
             disabled={loading}
           >
             {loading ? (
@@ -108,17 +86,24 @@ export default function LoginForm() {
           </Button>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border"></div>
+              <div className="w-full border-t border-blue-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-card/50 text-muted-foreground">Don't have an account?</span>
+              <span className="px-2 bg-white text-blue-600">Don't have an account?</span>
             </div>
           </div>
           <Link href="/auth/register">
-            <Button variant="outline" className="w-full border-border hover:bg-accent hover:text-accent-foreground transition-colors">
+            <Button variant="outline" className="w-full border-blue-200 hover:bg-blue-50 hover:text-blue-700 transition-colors">
               Create New Account
             </Button>
           </Link>
+          <div className="mt-4">
+            <Link href="/">
+              <Button variant="ghost" className="w-full text-blue-600 hover:text-blue-800 hover:bg-blue-50">
+                ← Back to Home
+              </Button>
+            </Link>
+          </div>
         </form>
       </CardContent>
     </Card>

@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { documentType, description, purpose, quantity } = await req.json();
+    const { documentType, quantity, department, program, phoneNumber, academicYear } = await req.json();
 
     await dbConnect();
 
@@ -48,9 +48,11 @@ export async function POST(req: NextRequest) {
       studentId: session.user?.id,
       studentName: session.user?.name,
       documentType,
-      description,
-      purpose,
-      quantity,
+      quantity: parseInt(quantity),
+      department,
+      program,
+      phoneNumber,
+      academicYear,
       status: 'pending',
       paymentStatus: 'unpaid',
     });
