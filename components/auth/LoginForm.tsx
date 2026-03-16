@@ -37,6 +37,11 @@ export default function LoginForm() {
   return (
     <Card className="w-full border border-blue-200 bg-white/90 backdrop-blur-md shadow-2xl hover:shadow-3xl transition-shadow duration-300">
       <CardHeader className="space-y-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-lg">
+        <div className="flex justify-center mb-4">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-2xl">K</span>
+          </div>
+        </div>
         <div className="space-y-1">
           <CardTitle className="text-2xl text-gray-900">Welcome Back</CardTitle>
           <CardDescription className="text-gray-600">Sign in to your account to continue</CardDescription>
@@ -98,7 +103,7 @@ export default function LoginForm() {
             </Button>
           </Link>
           <div className="mt-4">
-            <Link href="/">
+            <Link href="/studentrequest">
               <Button variant="ghost" className="w-full text-blue-600 hover:text-blue-800 hover:bg-blue-50">
                 ← Back to Home
               </Button>

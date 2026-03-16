@@ -43,24 +43,24 @@ export default function DashboardNav({ title, role = 'student', navigationItems 
 
   const defaultNavigationItems = {
     student: [
-      { name: 'Dashboard', href: '/dashboard', icon: <Home className="w-4 h-4" /> },
+      { name: 'Home', href: '/home', icon: <Home className="w-4 h-4" /> },
       { name: 'Requests', href: '/dashboard/requests', icon: <FileText className="w-4 h-4" /> },
       { name: 'Profile', href: '/dashboard/profile', icon: <User className="w-4 h-4" /> },
     ],
     admin: [
-      { name: 'Dashboard', href: '/admin', icon: <Home className="w-4 h-4" /> },
+      { name: 'Home', href: '/home', icon: <Home className="w-4 h-4" /> },
       { name: 'Users', href: '/admin/users', icon: <Users className="w-4 h-4" /> },
       { name: 'Reports', href: '/admin/reports', icon: <FileText className="w-4 h-4" /> },
       { name: 'Profile', href: '/admin/profile', icon: <User className="w-4 h-4" /> },
     ],
     registrar: [
-      { name: 'Dashboard', href: '/registrar', icon: <Home className="w-4 h-4" /> },
+      { name: 'Home', href: '/home', icon: <Home className="w-4 h-4" /> },
       { name: 'Requests', href: '/registrar/requests', icon: <FileText className="w-4 h-4" /> },
       { name: 'Reports', href: '/registrar/reports', icon: <FileText className="w-4 h-4" /> },
       { name: 'Profile', href: '/registrar/profile', icon: <User className="w-4 h-4" /> },
     ],
     revenue: [
-      { name: 'Dashboard', href: '/revenue', icon: <Home className="w-4 h-4" /> },
+      { name: 'Home', href: '/home', icon: <Home className="w-4 h-4" /> },
       { name: 'Payments', href: '/revenue/payments', icon: <CreditCard className="w-4 h-4" /> },
       { name: 'Reports', href: '/revenue/reports', icon: <FileText className="w-4 h-4" /> },
     ],

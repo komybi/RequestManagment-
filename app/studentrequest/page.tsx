@@ -26,11 +26,21 @@ export const metadata = {
   description: 'Manage your academic document requests efficiently',
 };
 
-export default async function Home() {
+export default async function StudentRequestHome() {
   const session = await auth();
 
   if (session) {
-    redirect('/home');
+    const role = (session.user as any)?.role;
+    if (role === 'admin') {
+      redirect('/admin');
+    }
+    if (role === 'registrar') {
+      redirect('/registrar');
+    }
+    if (role === 'revenue') {
+      redirect('/revenue');
+    }
+    redirect('/dashboard');
   }
 
   return (

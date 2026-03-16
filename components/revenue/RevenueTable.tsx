@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { CheckCircle, AlertCircle } from 'lucide-react';
 
 interface Request {
   _id: string;
@@ -161,76 +162,61 @@ function getPaymentStatusColor(status?: string) {
 
   return (
     <>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-lg">
         <table className="w-full">
-          <thead className="bg-muted">
+          <thead className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
             <tr>
-              <th className="px-4 py-2 text-left">Student Name</th>
-              <th className="px-4 py-2 text-left">Student ID</th>
-              <th className="px-4 py-2 text-left">Request Type</th>
-              <th className="px-4 py-2 text-left">Document Type</th>
-              <th className="px-4 py-2 text-left">Registrar Request Letter</th>
-              <th className="px-4 py-2 text-left">Payment Proof</th>
-              <th className="px-4 py-2 text-left">Revenue Number</th>
-              <th className="px-4 py-2 text-left">Bank Transaction</th>
-              <th className="px-4 py-2 text-left">Payment Status</th>
-              <th className="px-4 py-2 text-left">Action</th>
+              <th className="px-6 py-4 text-left font-semibold">Student Name</th>
+              <th className="px-6 py-4 text-left font-semibold">Student ID</th>
+              <th className="px-6 py-4 text-left font-semibold">Request Type</th>
+              <th className="px-6 py-4 text-left font-semibold">Document Type</th>
+              <th className="px-6 py-4 text-left font-semibold">Payment Status</th>
+              <th className="px-6 py-4 text-left font-semibold">Action</th>
             </tr>
           </thead>
-          <tbody>
-            {requests.map((request) => (
-              <tr key={request._id} className="border-t">
-                <td className="px-4 py-3">
-                  <p className="font-medium">{request.studentId.name}</p>
+          <tbody className="divide-y divide-gray-200">
+            {requests.map((request, index) => (
+              <tr key={request._id} className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                <td className="px-6 py-4">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-blue-600 font-semibold text-xs">{request.studentId.name.charAt(0)}</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{request.studentId.name}</p>
+                      <p className="text-xs text-gray-500">{request.studentId.email}</p>
+                    </div>
+                  </div>
                 </td>
-                <td className="px-4 py-3">
-                  <p className="text-sm">{request.studentId.studentId || 'N/A'}</p>
+                <td className="px-6 py-4">
+                  <p className="text-sm font-medium text-gray-900">{request.studentId.studentId || 'N/A'}</p>
                 </td>
-                <td className="px-4 py-3">
-                  <Badge variant="outline">
+                <td className="px-6 py-4">
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                     {request.requestType}
                   </Badge>
                 </td>
-                <td className="px-4 py-3">
-                  <Badge variant="outline">
+                <td className="px-6 py-4">
+                  <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
                     {request.documentType || 'N/A'}
                   </Badge>
                 </td>
-                <td className="px-4 py-3">
-                  {request.registrarRequestLetter ? (
-                    <Button variant="outline" size="sm">
-                      View Letter
-                    </Button>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">Not received</span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  {request.paymentProof ? (
-                    <Button variant="outline" size="sm">
-                      View Proof
-                    </Button>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">Not uploaded</span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <p className="text-sm">{request.revenueNumber || 'N/A'}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <p className="text-sm">{request.bankTransaction || 'N/A'}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <Badge className={getPaymentStatusColor(request.paymentStatus)}>
+                <td className="px-6 py-4">
+                  <Badge className={`${
+                    request.paymentStatus === 'VERIFIED' ? 'bg-green-100 text-green-800 border-green-200' :
+                    request.paymentStatus === 'REJECTED' ? 'bg-red-100 text-red-800 border-red-200' :
+                    'bg-yellow-100 text-yellow-800 border-yellow-200'
+                  }`}>
                     {request.paymentStatus || 'PENDING'}
                   </Badge>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-6 py-4">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setSelectedRequest(request)}
                     disabled={request.paymentStatus === 'VERIFIED'}
+                    className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 hover:border-purple-300"
                   >
                     Review
                   </Button>
@@ -243,113 +229,104 @@ function getPaymentStatusColor(status?: string) {
 
       {selectedRequest && (
         <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Payment Verification</DialogTitle>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-lg p-6">
+              <DialogTitle className="text-2xl font-bold">Payment Verification</DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-6">
+            <div className="space-y-8 p-6">
               {/* Student Information */}
-              <div>
-                <h4 className="font-semibold mb-3">Student Information</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Name</label>
-                    <p className="p-2 bg-muted rounded">{selectedRequest.studentId.name}</p>
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
+                <h4 className="font-bold text-lg mb-4 text-gray-900 flex items-center">
+                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                    <span className="text-white font-bold">S</span>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Student ID</label>
-                    <p className="p-2 bg-muted rounded">{selectedRequest.studentId.studentId || 'N/A'}</p>
+                  Student Information
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <label className="block text-sm font-semibold mb-2 text-gray-700">Full Name</label>
+                    <p className="text-base font-medium text-gray-900 bg-gray-50 p-3 rounded border border-gray-200">{selectedRequest.studentId.name}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <label className="block text-sm font-semibold mb-2 text-gray-700">Student ID</label>
+                    <p className="text-base font-medium text-gray-900 bg-gray-50 p-3 rounded border border-gray-200">{selectedRequest.studentId.studentId || 'N/A'}</p>
                   </div>
                 </div>
               </div>
 
               {/* Request Details */}
-              <div>
-                <h4 className="font-semibold mb-3">Request Details</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Request Type</label>
-                    <p className="p-2 bg-muted rounded">{selectedRequest.requestType}</p>
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+                <h4 className="font-bold text-lg mb-4 text-gray-900 flex items-center">
+                  <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center mr-3">
+                    <span className="text-white font-bold">R</span>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Document Type</label>
-                    <p className="p-2 bg-muted rounded">{selectedRequest.documentType || 'N/A'}</p>
+                  Request Details
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <label className="block text-sm font-semibold mb-2 text-gray-700">Request Type</label>
+                    <p className="text-base font-medium text-gray-900 bg-gray-50 p-3 rounded border border-gray-200">{selectedRequest.requestType}</p>
                   </div>
-                </div>
-              </div>
-
-              {/* Payment Verification */}
-              <div>
-                <h4 className="font-semibold mb-3">Payment Verification</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Registrar Request Letter</label>
-                    {selectedRequest.registrarRequestLetter ? (
-                      <Button variant="outline" className="w-full">
-                        View Letter
-                      </Button>
-                    ) : (
-                      <p className="p-2 bg-muted rounded">Not received</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Payment Proof</label>
-                    {selectedRequest.paymentProof ? (
-                      <Button variant="outline" className="w-full">
-                        View Proof
-                      </Button>
-                    ) : (
-                      <p className="p-2 bg-muted rounded">Not uploaded</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Revenue Number</label>
-                    <p className="p-2 bg-muted rounded">{selectedRequest.revenueNumber || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Bank Transaction</label>
-                    <p className="p-2 bg-muted rounded">{selectedRequest.bankTransaction || 'N/A'}</p>
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <label className="block text-sm font-semibold mb-2 text-gray-700">Document Type</label>
+                    <p className="text-base font-medium text-gray-900 bg-gray-50 p-3 rounded border border-gray-200">{selectedRequest.documentType || 'N/A'}</p>
                   </div>
                 </div>
               </div>
 
               {/* Payment Status */}
-              <div>
-                <h4 className="font-semibold mb-3">Current Payment Status</h4>
-                <div className="flex items-center gap-2">
-                  <Badge className={getPaymentStatusColor(selectedRequest.paymentStatus)}>
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+                <h4 className="font-bold text-lg mb-4 text-gray-900 flex items-center">
+                  <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center mr-3">
+                    <span className="text-white font-bold">P</span>
+                  </div>
+                  Current Payment Status
+                </h4>
+                <div className="flex items-center justify-center">
+                  <Badge className={`text-lg px-6 py-3 font-semibold ${
+                    selectedRequest.paymentStatus === 'VERIFIED' ? 'bg-green-100 text-green-800 border-green-300' :
+                    selectedRequest.paymentStatus === 'REJECTED' ? 'bg-red-100 text-red-800 border-red-300' :
+                    'bg-yellow-100 text-yellow-800 border-yellow-300'
+                  }`}>
                     {selectedRequest.paymentStatus || 'PENDING'}
                   </Badge>
                 </div>
               </div>
 
               {/* Revenue Actions */}
-              <div>
-                <h4 className="font-semibold mb-3">Revenue Actions</h4>
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 border border-orange-200">
+                <h4 className="font-bold text-lg mb-6 text-gray-900 flex items-center">
+                  <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center mr-3">
+                    <span className="text-white font-bold">A</span>
+                  </div>
+                  Revenue Actions
+                </h4>
                 <div className="space-y-4">
-                  <div className="flex gap-2">
+                  <div className="flex gap-4">
                     <Button
                       onClick={handleVerifyPayment}
-                      className="flex-1"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3"
                       disabled={selectedRequest.paymentStatus === 'VERIFIED'}
                     >
+                      <CheckCircle className="w-5 h-5 mr-2" />
                       Approve Payment
                     </Button>
                     <Button
                       onClick={handleRejectPayment}
                       variant="destructive"
-                      className="flex-1"
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3"
                       disabled={selectedRequest.paymentStatus === 'VERIFIED'}
                     >
+                      <AlertCircle className="w-5 h-5 mr-2" />
                       Reject Payment
                     </Button>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-4">
                     <Button
                       variant="outline"
                       onClick={() => setSelectedRequest(null)}
-                      className="flex-1"
+                      className="flex-1 border-gray-300 hover:bg-gray-50 font-semibold py-3"
                     >
                       Cancel
                     </Button>

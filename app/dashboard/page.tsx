@@ -51,23 +51,19 @@ export default function DashboardPage() {
     if (session) {
       fetchStats();
     }
-  }, [session]);
+  });
 
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        const response = await fetch('/api/dashboard/stats');
-        if (response.ok) {
-          const data = await response.json();
-          setStats(data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch dashboard stats:', error);
-      }
-    }
+  if (status === 'loading') {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">Loading...</div>
+    </div>;
+  }
 
-    fetchStats();
-  }, []);
+  if (!session) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">Session not found</div>
+    </div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

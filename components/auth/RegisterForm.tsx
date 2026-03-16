@@ -59,6 +59,11 @@ export default function RegisterForm() {
   return (
     <Card className="w-full border border-purple-200 bg-white/90 backdrop-blur-md shadow-2xl hover:shadow-3xl transition-shadow duration-300">
       <CardHeader className="space-y-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-t-lg">
+        <div className="flex justify-center mb-4">
+          <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-2xl">K</span>
+          </div>
+        </div>
         <div className="space-y-1">
           <CardTitle className="text-2xl text-gray-900">Create Account</CardTitle>
           <CardDescription className="text-gray-600">Join komydochub to start requesting documents</CardDescription>
@@ -160,7 +165,7 @@ export default function RegisterForm() {
             </Button>
           </Link>
           <div className="mt-4">
-            <Link href="/">
+            <Link href="/studentrequest">
               <Button variant="ghost" className="w-full text-purple-600 hover:text-purple-800 hover:bg-purple-50">
                 ← Back to Home
               </Button>

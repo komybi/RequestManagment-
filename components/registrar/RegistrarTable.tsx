@@ -43,6 +43,8 @@ interface Request {
   replacementType?: string;
   amount?: number;
   paymentMethod?: string;
+  revenueLetterId?: string;
+  sentToRevenueAt?: string;
 }
 
 export default function RegistrarTable() {
@@ -238,6 +240,23 @@ export default function RegistrarTable() {
     }, 100);
   };
 
+  const handleCheckLetter = async () => {
+    if (!selectedRequest) return;
+
+    try {
+      // Open the generated letter in a new window/tab
+      if (selectedRequest.revenueLetterId) {
+        const letterUrl = `/api/revenue/letter/view/${selectedRequest.revenueLetterId}`;
+        window.open(letterUrl, '_blank');
+      } else {
+        alert('No revenue letter has been generated for this request yet.');
+      }
+    } catch (error) {
+      console.error('Failed to check letter:', error);
+      alert('Failed to open letter. Please try again.');
+    }
+  };
+
   const handleGenerateRevenueLetter = async () => {
     if (!selectedRequest) return;
 
@@ -249,9 +268,9 @@ export default function RegistrarTable() {
         studentName: selectedRequest.studentId?.name,
         studentIdNumber: selectedRequest.studentId?.studentId,
         documentType: selectedRequest.documentType,
-        department: selectedRequest.department,
-        program: selectedRequest.program,
-        academicYear: selectedRequest.academicYear,
+        department: selectedRequest.department || (selectedRequest.studentId as any)?.department,
+        program: selectedRequest.program || (selectedRequest.studentId as any)?.program,
+        academicYear: selectedRequest.academicYear || (selectedRequest.studentId as any)?.year,
         requestDate: selectedRequest.createdAt,
         deliveryDate: deliveryDate || null,
         urgency: (selectedRequest as any).urgency || 'Normal',
@@ -761,10 +780,13 @@ export default function RegistrarTable() {
                       </div>
                       <div className="flex gap-3">
                         <Button 
-                          onClick={() => handleNotifyStudent('under-review')}
+                          onClick={() => handleCheckLetter()}
+                          variant="outline"
                           className="flex-1"
+                          disabled={!selectedRequest.revenueLetterId}
                         >
-                          Notify Student (Under Review)
+                          <Package className="w-4 h-4 mr-2" />
+                          Check Letter
                         </Button>
                         <Button 
                           onClick={() => handleGenerateRevenueLetter()}

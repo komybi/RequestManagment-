@@ -44,12 +44,12 @@ export async function GET(req: NextRequest) {
 
     // Fetch document requests
     const documentRequests = await Request.find(query)
-      .populate('studentId', 'name email studentId')
+      .populate('studentId', 'name email studentId department program phoneNumber year')
       .sort({ createdAt: -1 });
 
     // Fetch ID replacement requests
     const idReplacementRequests = await IDReplacementRequest.find(query)
-      .populate('studentId', 'name email studentId')
+      .populate('studentId', 'name email studentId department program phoneNumber year')
       .sort({ createdAt: -1 });
 
     // Combine and format all requests
@@ -59,10 +59,10 @@ export async function GET(req: NextRequest) {
         requestType: 'DOCUMENT',
         documentType: req.documentType,
         paymentFile: req.paymentFile,
-        department: (req.studentId as any)?.department || 'N/A',
-        program: (req.studentId as any)?.program || 'N/A',
-        phoneNumber: (req.studentId as any)?.phoneNumber || 'N/A',
-        academicYear: (req.studentId as any)?.academicYear || 'N/A',
+        department: req.department || (req.studentId as any)?.department || 'N/A',
+        program: req.program || (req.studentId as any)?.program || 'N/A',
+        phoneNumber: req.phoneNumber || (req.studentId as any)?.phoneNumber || 'N/A',
+        academicYear: req.academicYear || (req.studentId as any)?.year || 'N/A',
       })),
       ...idReplacementRequests.map(req => ({
         ...req.toObject(),
@@ -71,10 +71,10 @@ export async function GET(req: NextRequest) {
         paymentFile: req.receiptPath,
         reason: req.reason,
         replacementType: req.replacementType,
-        department: req.department || 'N/A',
-        program: req.program || 'N/A',
-        phoneNumber: req.phoneNumber || 'N/A',
-        academicYear: req.academicYear || 'N/A',
+        department: req.department || (req.studentId as any)?.department || 'N/A',
+        program: req.program || (req.studentId as any)?.program || 'N/A',
+        phoneNumber: req.phoneNumber || (req.studentId as any)?.phoneNumber || 'N/A',
+        academicYear: req.academicYear || (req.studentId as any)?.year || 'N/A',
         // Convert status to uppercase for consistency
         status: req.status.toUpperCase(),
       }))
