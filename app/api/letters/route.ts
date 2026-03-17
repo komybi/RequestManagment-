@@ -34,7 +34,14 @@ export async function GET(request: NextRequest) {
       program: letter.program || '',
       academicYear: letter.academicYear || '',
       sentToRevenueAt: letter.sentToRevenueAt,
-      status: 'Sent to Student'
+      status: 'Sent to Student',
+      paymentRequested: letter.paymentRequested || false,
+      paymentAmount: letter.paymentAmount,
+      paymentAccountDetails: letter.paymentAccountDetails,
+      paymentReceiptPath: letter.paymentReceiptPath,
+      paymentTransactionId: letter.paymentTransactionId,
+      paymentReceiptUploadedAt: letter.paymentReceiptUploadedAt,
+      paymentAdditionalInfo: letter.paymentAdditionalInfo
     }));
 
     return NextResponse.json(formattedLetters);

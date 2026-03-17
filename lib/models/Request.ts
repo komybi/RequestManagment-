@@ -5,7 +5,7 @@ export interface IRequest extends Document {
   studentId: mongoose.Types.ObjectId;
   requestType: 'ID_REPLACEMENT' | 'DOCUMENT' | 'MA_DOCUMENT';
   documentType?: 'TRANSCRIPT' | 'CERTIFICATE' | 'ENROLLMENT_LETTER' | 'RECOMMENDATION_LETTER';
-  status: 'PENDING' | 'PROCESSING' | 'APPROVED' | 'REJECTED' | 'REVENUE_REVIEW';
+  status: 'PENDING' | 'PROCESSING' | 'APPROVED' | 'REJECTED' | 'REVENUE_REVIEW' | 'PAYMENT_PENDING' | 'PAYMENT_VERIFICATION_PENDING' | 'PAYMENT_VERIFIED' | 'PAYMENT_REJECTED';
   paymentFile?: string;
   paymentVerified: boolean;
   adminComment?: string;
@@ -27,6 +27,14 @@ export interface IRequest extends Document {
   academicYear?: string;
   quantity?: number;
   description?: string;
+  paymentRequested?: boolean;
+  paymentRequestedAt?: Date;
+  paymentAmount?: number;
+  paymentAccountDetails?: string;
+  paymentReceiptPath?: string;
+  paymentTransactionId?: string;
+  paymentReceiptUploadedAt?: Date;
+  paymentAdditionalInfo?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -102,6 +110,31 @@ const requestSchema = new Schema<IRequest>(
       type: Date,
     },
     revenueReceipt: {
+      type: String,
+    },
+    paymentRequested: {
+      type: Boolean,
+      default: false,
+    },
+    paymentRequestedAt: {
+      type: Date,
+    },
+    paymentAmount: {
+      type: Number,
+    },
+    paymentAccountDetails: {
+      type: String,
+    },
+    paymentReceiptPath: {
+      type: String,
+    },
+    paymentTransactionId: {
+      type: String,
+    },
+    paymentReceiptUploadedAt: {
+      type: Date,
+    },
+    paymentAdditionalInfo: {
       type: String,
     },
     department: {
