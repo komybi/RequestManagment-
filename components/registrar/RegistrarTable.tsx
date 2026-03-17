@@ -66,9 +66,12 @@ export default function RegistrarTable() {
       if (response.ok) {
         const data = await response.json();
         
-        // Filter only student requests
+        // Filter only student document and ID replacement requests
         const studentRequests = data.filter((req: Request) => 
-          req.studentId && req.studentId.email && req.studentId.email.includes('@')
+          req.studentId && 
+          req.studentId.email && 
+          req.studentId.email.includes('@') &&
+          (req.requestType === 'DOCUMENT' || req.requestType === 'ID_REPLACEMENT')
         );
         
         setRequests(studentRequests);

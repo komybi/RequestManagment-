@@ -14,16 +14,16 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function DocumentRequestForm() {
+export default function DocumentRequestForm({ isMARequest = false }: { isMARequest?: boolean }) {
   console.log('DocumentRequestForm component loaded - updated version');
   const { data: session } = useSession();
   const [documentType, setDocumentType] = useState('');
   const [quantity, setQuantity] = useState('1');
+  const [description, setDescription] = useState('');
   const [department, setDepartment] = useState('');
   const [program, setProgram] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [academicYear, setAcademicYear] = useState('');
-  const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [userData, setUserData] = useState({
@@ -57,7 +57,10 @@ export default function DocumentRequestForm() {
       const response = await fetch(`/api/user?email=${session?.user?.email}`);
       if (response.ok) {
         const data = await response.json();
+        console.log('Fetched user data:', data.user);
         setUserData(data.user);
+      } else {
+        console.error('Failed to fetch user data:', response.status);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -78,7 +81,7 @@ export default function DocumentRequestForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          requestType: 'DOCUMENT',
+          requestType: isMARequest ? 'MA_DOCUMENT' : 'DOCUMENT',
           documentType,
           quantity: parseInt(quantity),
           department,
@@ -88,6 +91,18 @@ export default function DocumentRequestForm() {
           description,
           deliveryMethod: 'EMAIL',
         }),
+      });
+
+      console.log('Submitting document request with data:', {
+        requestType: 'DOCUMENT',
+        documentType,
+        quantity: parseInt(quantity),
+        department,
+        program,
+        phoneNumber,
+        academicYear,
+        description,
+        deliveryMethod: 'EMAIL',
       });
 
       if (!response.ok) {

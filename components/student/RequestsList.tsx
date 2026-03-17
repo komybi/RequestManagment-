@@ -8,12 +8,23 @@ import DocumentDetail from './DocumentDetail';
 
 interface DocumentRequest {
   _id: string;
+  requestType: string;
   documentType: string;
   description: string;
   status: 'pending' | 'approved' | 'rejected' | 'completed';
   trackingNumber: string;
   createdAt: string;
   rejectionReason?: string;
+  department?: string;
+  program?: string;
+  phoneNumber?: string;
+  academicYear?: string;
+  studentId?: {
+    _id: string;
+    name: string;
+    email: string;
+    studentId?: string;
+  };
 }
 
 export default function RequestsList() {
@@ -24,10 +35,14 @@ export default function RequestsList() {
   useEffect(() => {
     async function fetchRequests() {
       try {
-        const response = await fetch('/api/documents');
+        const response = await fetch('/api/requests');
         if (response.ok) {
           const data = await response.json();
-          setRequests(data);
+          // Filter only document requests for current student
+          const documentRequests = data.filter((req: DocumentRequest) => 
+            req.requestType === 'DOCUMENT'
+          );
+          setRequests(documentRequests);
         }
       } catch (error) {
         console.error('Failed to fetch requests:', error);
@@ -102,6 +117,23 @@ export default function RequestsList() {
             </CardHeader>
             <CardContent className="space-y-2">
               <p className="text-sm text-muted-foreground">{request.description}</p>
+              
+              {/* Display additional student information */}
+              <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                <div>
+                  <span className="font-medium">Department:</span> {request.department || (request.studentId as any)?.department || 'N/A'}
+                </div>
+                <div>
+                  <span className="font-medium">Program:</span> {request.program || (request.studentId as any)?.program || 'N/A'}
+                </div>
+                <div>
+                  <span className="font-medium">Academic Year:</span> {request.academicYear || (request.studentId as any)?.year || 'N/A'}
+                </div>
+                <div>
+                  <span className="font-medium">Phone:</span> {request.phoneNumber || (request.studentId as any)?.phoneNumber || 'N/A'}
+                </div>
+              </div>
+              
               <p className="text-xs text-muted-foreground">
                 Submitted: {new Date(request.createdAt).toLocaleDateString()}
               </p>

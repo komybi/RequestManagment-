@@ -19,6 +19,10 @@ export default function RegisterForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [studentId, setStudentId] = useState('');
+  const [department, setDepartment] = useState('');
+  const [program, setProgram] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [year, setYear] = useState('');
   const [role, setRole] = useState('student');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -38,7 +42,11 @@ export default function RegisterForm() {
           email, 
           password, 
           role, 
-          studentId: role === 'student' ? studentId : undefined
+          studentId: role === 'student' ? studentId : undefined,
+          department: role === 'student' ? department : undefined,
+          program: role === 'student' ? program : undefined,
+          phoneNumber: role === 'student' ? phoneNumber : undefined,
+          year: role === 'student' ? year : undefined
         }),
       });
 
@@ -118,6 +126,50 @@ export default function RegisterForm() {
                   placeholder="STU123456"
                   value={studentId}
                   onChange={(e) => setStudentId(e.target.value)}
+                  required
+                  className="bg-white border-blue-200 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 text-black"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Department</label>
+                <Input
+                  type="text"
+                  placeholder="Computer Science"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  required
+                  className="bg-white border-blue-200 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 text-black"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Program</label>
+                <Input
+                  type="text"
+                  placeholder="BSc Computer Science"
+                  value={program}
+                  onChange={(e) => setProgram(e.target.value)}
+                  required
+                  className="bg-white border-blue-200 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 text-black"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Phone Number</label>
+                <Input
+                  type="tel"
+                  placeholder="+251912345678"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  required
+                  className="bg-white border-blue-200 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 text-black"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Academic Year</label>
+                <Input
+                  type="text"
+                  placeholder="2023/2024"
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
                   required
                   className="bg-white border-blue-200 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 text-black"
                 />

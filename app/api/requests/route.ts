@@ -35,12 +35,15 @@ export async function GET(req: NextRequest) {
       query.status = { $in: statuses };
     }
 
+    // Build request type filter for registrar
+    if (role === 'registrar') {
+      query.requestType = { $in: ['DOCUMENT', 'MA_DOCUMENT', 'ID_REPLACEMENT'] };
+    }
+
     // Filter by user role
     if (role === 'student') {
       query.studentId = (session.user as any)?.id;
     }
-    // For registrar and admin, show all student requests
-    // No additional filtering needed - they see all requests
 
     // Fetch document requests
     const documentRequests = await Request.find(query)
@@ -56,7 +59,7 @@ export async function GET(req: NextRequest) {
     const allRequests = [
       ...documentRequests.map(req => ({
         ...req.toObject(),
-        requestType: 'DOCUMENT',
+        requestType: req.requestType, // Keep original requestType (DOCUMENT or MA_DOCUMENT)
         documentType: req.documentType,
         paymentFile: req.paymentFile,
         department: req.department || (req.studentId as any)?.department || 'N/A',
@@ -77,7 +80,7 @@ export async function GET(req: NextRequest) {
         academicYear: req.academicYear || (req.studentId as any)?.year || 'N/A',
         // Convert status to uppercase for consistency
         status: req.status.toUpperCase(),
-      }))
+      })),
     ];
 
     // Sort all requests by creation date
