@@ -121,16 +121,16 @@ export default function RequestsList() {
               {/* Display additional student information */}
               <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                 <div>
-                  <span className="font-medium">Department:</span> {request.department || (request.studentId as any)?.department || 'N/A'}
+                  <span className="font-medium">Department:</span> {request.department || (request.studentId as any)?.department || ''}
                 </div>
                 <div>
-                  <span className="font-medium">Program:</span> {request.program || (request.studentId as any)?.program || 'N/A'}
+                  <span className="font-medium">Program:</span> {request.program || (request.studentId as any)?.program || ''}
                 </div>
                 <div>
-                  <span className="font-medium">Academic Year:</span> {request.academicYear || (request.studentId as any)?.year || 'N/A'}
+                  <span className="font-medium">Academic Year:</span> {request.academicYear || (request.studentId as any)?.year || ''}
                 </div>
                 <div>
-                  <span className="font-medium">Phone:</span> {request.phoneNumber || (request.studentId as any)?.phoneNumber || 'N/A'}
+                  <span className="font-medium">Phone:</span> {request.phoneNumber || (request.studentId as any)?.phoneNumber || ''}
                 </div>
               </div>
               

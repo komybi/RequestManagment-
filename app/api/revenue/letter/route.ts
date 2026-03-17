@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import { sendEmail } from '@/lib/email';
 import { getLetterTemplate } from '@/lib/letterTemplate';
+import Request from '@/lib/models/Request';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,6 +18,7 @@ export async function POST(request: NextRequest) {
       requestId,
       studentId,
       studentName,
+      studentEmail,
       studentIdNumber,
       documentType,
       department,
@@ -28,17 +30,19 @@ export async function POST(request: NextRequest) {
       purpose
     } = letterData;
 
+    await dbConnect();
+
     // Generate formal letter content using template
     const letterContent = getLetterTemplate({
       registrarName: session.user?.name || 'Registrar',
       date: new Date().toLocaleDateString(),
       studentName,
       studentId: studentIdNumber,
-      department: department || 'N/A',
-      program: program || 'N/A',
-      academicYear: academicYear || 'N/A',
+      department: department || '',
+      program: program || '',
+      academicYear: academicYear || '',
       documentType: documentType || 'Document',
-      description: purpose || 'Document request for revenue processing'
+      description: purpose || 'Document request processing'
     });
 
     // Convert to HTML format for email
@@ -63,22 +67,30 @@ export async function POST(request: NextRequest) {
 </html>
     `;
 
-    // Send email to revenue office
-    const revenueEmail = 'revenue@university.edu'; // Update with actual revenue office email
-    
+    // Send email to STUDENT (not revenue office)
     await sendEmail({
-      to: revenueEmail,
-      subject: `Document Request Processing - ${studentName} (${studentIdNumber})`,
+      to: studentEmail,
+      subject: `Document Request Confirmation - ${studentName} (${studentIdNumber})`,
       html: htmlLetterContent
     });
 
     // Generate letter ID for tracking
-    const letterId = `REV-${Date.now()}-${requestId?.slice(-6).toUpperCase()}`;
+    const letterId = `LET-${Date.now()}-${requestId?.slice(-6).toUpperCase()}`;
 
-    console.log('Revenue letter generated and sent:', {
+    // Update the request with letter information for revenue dashboard
+    await Request.findByIdAndUpdate(requestId, {
+      revenueLetterId: letterId,
+      revenueLetterContent: letterContent,
+      revenueLetterSentAt: new Date(),
+      sentToRevenueAt: new Date(),
+      status: 'REVENUE_REVIEW'
+    });
+
+    console.log('Student letter generated and sent:', {
       letterId,
       requestId,
       studentName,
+      studentEmail,
       studentIdNumber,
       documentType,
       timestamp: new Date().toISOString()
@@ -86,13 +98,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Revenue letter generated successfully',
+      message: 'Letter sent to student and stored for revenue review',
       letterId,
-      sentTo: revenueEmail
+      sentTo: studentEmail
     });
 
   } catch (error) {
-    console.error('Failed to generate revenue letter:', error);
-    return NextResponse.json({ error: 'Failed to generate revenue letter' }, { status: 500 });
+    console.error('Failed to generate letter:', error);
+    return NextResponse.json({ error: 'Failed to generate letter' }, { status: 500 });
   }
 }

@@ -264,11 +264,12 @@ export default function RegistrarTable() {
     if (!selectedRequest) return;
 
     try {
-      // Generate formal letter for revenue office
+      // Generate formal letter for student
       const letterData = {
         requestId: selectedRequest._id,
         studentId: selectedRequest.studentId?._id,
         studentName: selectedRequest.studentId?.name,
+        studentEmail: selectedRequest.studentId?.email,
         studentIdNumber: selectedRequest.studentId?.studentId,
         documentType: selectedRequest.documentType,
         department: selectedRequest.department || (selectedRequest.studentId as any)?.department,
@@ -610,19 +611,19 @@ export default function RegistrarTable() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Phone Number</label>
-                    <p className="p-2 bg-muted rounded">{selectedRequest.phoneNumber || 'N/A'}</p>
+                    <p className="p-2 bg-muted rounded">{selectedRequest.phoneNumber || ''}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Department</label>
-                    <p className="p-2 bg-muted rounded">{selectedRequest.department || 'N/A'}</p>
+                    <p className="p-2 bg-muted rounded">{selectedRequest.department || ''}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Program</label>
-                    <p className="p-2 bg-muted rounded">{selectedRequest.program || 'N/A'}</p>
+                    <p className="p-2 bg-muted rounded">{selectedRequest.program || ''}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Academic Year</label>
-                    <p className="p-2 bg-muted rounded">{selectedRequest.academicYear || 'N/A'}</p>
+                    <p className="p-2 bg-muted rounded">{selectedRequest.academicYear || ''}</p>
                   </div>
                 </div>
               </div>

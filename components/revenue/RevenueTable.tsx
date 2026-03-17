@@ -20,6 +20,10 @@ interface Request {
   bankTransaction?: string;
   receiptFile?: string;
   paymentStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED';
+  revenueLetterId?: string;
+  revenueLetterContent?: string;
+  revenueLetterSentAt?: string;
+  sentToRevenueAt?: string;
 }
 
 export default function RevenueTable() {
@@ -293,6 +297,34 @@ function getPaymentStatusColor(status?: string) {
                   </Badge>
                 </div>
               </div>
+
+              {/* Generated Letter */}
+              {selectedRequest.revenueLetterContent && (
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+                  <h4 className="font-bold text-lg mb-4 text-gray-900 flex items-center">
+                    <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center mr-3">
+                      <span className="text-white font-bold">L</span>
+                    </div>
+                    Generated Letter (Sent to Student)
+                  </h4>
+                  <div className="space-y-4">
+                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                      <div className="flex justify-between items-center mb-3">
+                        <label className="text-sm font-semibold text-gray-700">Letter Content</label>
+                        <div className="text-xs text-gray-500">
+                          ID: {selectedRequest.revenueLetterId} | 
+                          Sent: {selectedRequest.revenueLetterSentAt ? new Date(selectedRequest.revenueLetterSentAt).toLocaleDateString() : 'N/A'}
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded border border-gray-200 max-h-60 overflow-y-auto">
+                        <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono">
+                          {selectedRequest.revenueLetterContent}
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Revenue Actions */}
               <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 border border-orange-200">

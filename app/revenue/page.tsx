@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import RevenueTable from '@/components/revenue/RevenueTable';
+import LettersTable from '@/components/revenue/LettersTable';
 import {
   CreditCard,
   DollarSign,
@@ -144,8 +144,8 @@ export default function RevenueDashboard() {
             <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
               <div className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-2xl font-bold">Payment Verification</CardTitle>
-                  <CardDescription className="text-purple-100">Verify payments and manage receipts</CardDescription>
+                  <CardTitle className="text-2xl font-bold">Generated Letters</CardTitle>
+                  <CardDescription className="text-purple-100">View and manage generated letters sent to students</CardDescription>
                 </div>
                 <div className="flex space-x-2">
                   <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
@@ -160,7 +160,7 @@ export default function RevenueDashboard() {
               </div>
             </CardHeader>
             <CardContent className="p-6">
-              <RevenueTable />
+              <LettersTable />
             </CardContent>
           </Card>
         </div>

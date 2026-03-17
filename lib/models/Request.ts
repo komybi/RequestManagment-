@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IRequest extends Document {
   _id: mongoose.Types.ObjectId;
   studentId: mongoose.Types.ObjectId;
-  requestType: 'ID_REPLACEMENT' | 'DOCUMENT';
+  requestType: 'ID_REPLACEMENT' | 'DOCUMENT' | 'MA_DOCUMENT';
   documentType?: 'TRANSCRIPT' | 'CERTIFICATE' | 'ENROLLMENT_LETTER' | 'RECOMMENDATION_LETTER';
   status: 'PENDING' | 'PROCESSING' | 'APPROVED' | 'REJECTED' | 'REVENUE_REVIEW';
   paymentFile?: string;
@@ -17,8 +17,16 @@ export interface IRequest extends Document {
   purpose?: string;
   sentToRevenueAt?: Date;
   revenueLetterId?: string;
+  revenueLetterContent?: string;
+  revenueLetterSentAt?: Date;
   revenueProcessedAt?: Date;
   revenueReceipt?: string;
+  department?: string;
+  program?: string;
+  phoneNumber?: string;
+  academicYear?: string;
+  quantity?: number;
+  description?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -84,10 +92,35 @@ const requestSchema = new Schema<IRequest>(
     revenueLetterId: {
       type: String,
     },
+    revenueLetterContent: {
+      type: String,
+    },
+    revenueLetterSentAt: {
+      type: Date,
+    },
     revenueProcessedAt: {
       type: Date,
     },
     revenueReceipt: {
+      type: String,
+    },
+    department: {
+      type: String,
+    },
+    program: {
+      type: String,
+    },
+    phoneNumber: {
+      type: String,
+    },
+    academicYear: {
+      type: String,
+    },
+    quantity: {
+      type: Number,
+      default: 1,
+    },
+    description: {
       type: String,
     },
   },
