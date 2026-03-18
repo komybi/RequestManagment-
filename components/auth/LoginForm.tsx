@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,15 @@ export default function LoginForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // Check if there's a redirect parameter
+    const redirectUrl = searchParams.get('redirect');
+    if (redirectUrl) {
+      console.log('LoginForm - Redirect URL:', decodeURIComponent(redirectUrl));
+    }
+  }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -21,12 +30,20 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
+      const redirectUrl = searchParams.get('redirect');
       await signIn('credentials', {
         email,
         password,
-        redirect: true,
-        callbackUrl: '/', // Let middleware handle the redirection
+        redirect: false, // We'll handle redirect manually
+        callbackUrl: redirectUrl ? decodeURIComponent(redirectUrl) : '/',
       });
+      
+      // If there's a redirect URL, navigate to it after successful login
+      if (redirectUrl) {
+        router.push(decodeURIComponent(redirectUrl));
+      } else {
+        router.push('/');
+      }
     } catch (err) {
       setError('Invalid email or password');
     } finally {

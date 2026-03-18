@@ -4,8 +4,14 @@ export interface IRequest extends Document {
   _id: mongoose.Types.ObjectId;
   studentId: mongoose.Types.ObjectId;
   requestType: 'ID_REPLACEMENT' | 'DOCUMENT' | 'MA_DOCUMENT';
-  documentType?: 'TRANSCRIPT' | 'CERTIFICATE' | 'ENROLLMENT_LETTER' | 'RECOMMENDATION_LETTER';
-  status: 'PENDING' | 'PROCESSING' | 'APPROVED' | 'REJECTED' | 'REVENUE_REVIEW' | 'PAYMENT_PENDING' | 'PAYMENT_VERIFICATION_PENDING' | 'PAYMENT_VERIFIED' | 'PAYMENT_REJECTED';
+  documentType?: string;
+  quantity?: number;
+  description?: string;
+  reason?: string;
+  replacementType?: string;
+  urgency?: 'Normal' | 'Urgent';
+  purpose?: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'REVENUE_REVIEW' | 'COMPLETED' | 'FORMAL_RECEIPT_PENDING' | 'FORMAL_RECEIPT_ISSUED';
   paymentFile?: string;
   paymentVerified: boolean;
   adminComment?: string;
@@ -13,20 +19,14 @@ export interface IRequest extends Document {
   deliveryDate?: Date;
   registrarNotes?: string;
   trackingNumber: string;
-  urgency?: 'Normal' | 'Urgent';
-  purpose?: string;
-  sentToRevenueAt?: Date;
-  revenueLetterId?: string;
-  revenueLetterContent?: string;
-  revenueLetterSentAt?: Date;
-  revenueProcessedAt?: Date;
-  revenueReceipt?: string;
   department?: string;
   program?: string;
   phoneNumber?: string;
   academicYear?: string;
-  quantity?: number;
-  description?: string;
+  revenueLetterId?: string;
+  revenueLetterContent?: string;
+  revenueLetterSentAt?: Date;
+  sentToRevenueAt?: Date;
   paymentRequested?: boolean;
   paymentRequestedAt?: Date;
   paymentAmount?: number;
@@ -35,6 +35,13 @@ export interface IRequest extends Document {
   paymentTransactionId?: string;
   paymentReceiptUploadedAt?: Date;
   paymentAdditionalInfo?: string;
+  formalReceiptId?: string;
+  formalReceiptContent?: string;
+  formalReceiptIssuedAt?: Date;
+  formalReceiptIssuedBy?: string;
+  forwardedToRegistrarAt?: Date;
+  availableToRegistrar?: boolean;
+  registrarProcessed?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -106,12 +113,6 @@ const requestSchema = new Schema<IRequest>(
     revenueLetterSentAt: {
       type: Date,
     },
-    revenueProcessedAt: {
-      type: Date,
-    },
-    revenueReceipt: {
-      type: String,
-    },
     paymentRequested: {
       type: Boolean,
       default: false,
@@ -136,6 +137,30 @@ const requestSchema = new Schema<IRequest>(
     },
     paymentAdditionalInfo: {
       type: String,
+    },
+    // Formal receipt information
+    formalReceiptId: {
+      type: String,
+    },
+    formalReceiptContent: {
+      type: String,
+    },
+    formalReceiptIssuedAt: {
+      type: Date,
+    },
+    formalReceiptIssuedBy: {
+      type: String,
+    },
+    forwardedToRegistrarAt: {
+      type: Date,
+    },
+    availableToRegistrar: {
+      type: Boolean,
+      default: false,
+    },
+    registrarProcessed: {
+      type: Boolean,
+      default: false,
     },
     department: {
       type: String,

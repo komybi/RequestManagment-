@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,12 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react';
-import { redirect } from 'next/navigation';
 
-export default function PaymentReceiptUpload() {
-  const { data: session } = useSession();
+export default function TestPaymentReceiptUpload() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   
   const [requestId, setRequestId] = useState('');
   const [transactionId, setTransactionId] = useState('');
@@ -24,30 +20,17 @@ export default function PaymentReceiptUpload() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Get parameters from URL first
+    // Get parameters from URL
     const reqId = searchParams.get('requestId');
     const transId = searchParams.get('transactionId');
-    const redirectTo = searchParams.get('redirect');
     
-    console.log('Payment Receipt Page - URL Parameters:', { reqId, transId, redirectTo });
+    console.log('Test Payment Receipt Page - URL Parameters:', { reqId, transId });
     
     if (reqId) setRequestId(reqId);
     if (transId) setTransactionId(transId);
-    
-    setIsInitialized(true);
   }, [searchParams]);
-
-  useEffect(() => {
-    if (isInitialized && !session) {
-      console.log('No session, showing login message...');
-      // Don't redirect immediately, show message instead
-      setError('You need to be logged in to upload payment receipt. Please login first.');
-      return;
-    }
-  }, [session, isInitialized]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -88,6 +71,14 @@ export default function PaymentReceiptUpload() {
       formData.append('receipt', receiptFile);
       formData.append('additionalInfo', additionalInfo);
 
+      console.log('Submitting payment receipt:', {
+        requestId,
+        transactionId,
+        fileName: receiptFile.name,
+        fileSize: receiptFile.size,
+        additionalInfo
+      });
+
       const response = await fetch('/api/payment-receipt/upload', {
         method: 'POST',
         body: formData,
@@ -99,57 +90,19 @@ export default function PaymentReceiptUpload() {
         return;
       }
 
+      const result = await response.json();
+      console.log('Upload successful:', result);
       setSuccess(true);
       setReceiptFile(null);
       setAdditionalInfo('');
 
     } catch (err) {
+      console.error('Upload error:', err);
       setError('Failed to upload receipt. Please try again.');
     } finally {
       setLoading(false);
     }
   };
-
-  if (error && error.includes('logged in')) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-              <AlertCircle className="w-8 h-8 text-red-600" />
-            </div>
-            <CardTitle className="text-2xl text-red-600">Authentication Required</CardTitle>
-            <CardDescription>
-              You need to be logged in to upload payment receipt
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <div className="space-y-4">
-              <p className="text-gray-600 mb-4">
-                Please login to your account to continue with payment receipt upload.
-              </p>
-              <Button 
-                onClick={() => {
-                  const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-                  window.location.href = `/auth/login?redirect=${returnUrl}`;
-                }}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3"
-              >
-                Go to Login
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => window.location.href = '/revenue'}
-                className="w-full mt-2"
-              >
-                Back to Revenue Dashboard
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   if (success) {
     return (
@@ -166,43 +119,13 @@ export default function PaymentReceiptUpload() {
           </CardHeader>
           <CardContent className="text-center">
             <Button 
-              onClick={() => router.push('/dashboard')}
+              onClick={() => window.location.href = 'http://localhost:3000/revenue'}
               className="w-full"
             >
-              Back to Dashboard
+              View Revenue Dashboard
             </Button>
           </CardContent>
         </Card>
-      </div>
-    );
-  }
-
-  // Debug information
-  if (isInitialized) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
-          <Card className="shadow-lg mb-6">
-            <CardHeader className="bg-blue-600 text-white">
-              <CardTitle>Debug Information</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-2">
-                <p><strong>Request ID:</strong> {requestId || 'Not provided'}</p>
-                <p><strong>Transaction ID:</strong> {transactionId || 'Not provided'}</p>
-                <p><strong>Session:</strong> {session ? 'Logged in' : 'Not logged in'}</p>
-                <p><strong>User ID:</strong> {session?.user ? (session.user as any)?.id : 'Not available'}</p>
-                <p><strong>User Email:</strong> {session?.user?.email || 'Not available'}</p>
-              </div>
-              <Button 
-                onClick={() => setIsInitialized(false)}
-                className="mt-4"
-              >
-                Continue to Upload Form
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     );
   }
@@ -214,26 +137,24 @@ export default function PaymentReceiptUpload() {
           <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
             <CardTitle className="text-2xl flex items-center">
               <Upload className="w-8 h-8 mr-3" />
-              Upload Payment Receipt
+              Test Payment Receipt Upload (No Auth Required)
             </CardTitle>
             <CardDescription className="text-blue-100">
-              Upload your payment receipt to complete your document request
+              Test payment receipt upload functionality
             </CardDescription>
           </CardHeader>
           
           <CardContent className="p-8 space-y-6">
-            {requestId && (
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <p className="text-sm font-medium text-blue-800">
-                  <strong>Request ID:</strong> {requestId}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <p className="text-sm font-medium text-blue-800">
+                <strong>Request ID:</strong> {requestId || 'Not provided'}
+              </p>
+              {transactionId && (
+                <p className="text-sm font-medium text-blue-800 mt-1">
+                  <strong>Transaction ID:</strong> {transactionId}
                 </p>
-                {transactionId && (
-                  <p className="text-sm font-medium text-blue-800 mt-1">
-                    <strong>Transaction ID:</strong> {transactionId}
-                  </p>
-                )}
-              </div>
-            )}
+              )}
+            </div>
 
             {error && (
               <Alert className="border-red-200 bg-red-50">
@@ -257,7 +178,7 @@ export default function PaymentReceiptUpload() {
                   className="mt-1"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  This should match the transaction ID from your payment confirmation
+                  This should match transaction ID from your payment confirmation
                 </p>
               </div>
 
@@ -320,12 +241,12 @@ export default function PaymentReceiptUpload() {
             </form>
 
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-              <h4 className="font-medium text-yellow-800 mb-2">Important Notes:</h4>
+              <h4 className="font-medium text-yellow-800 mb-2">Test Notes:</h4>
               <ul className="text-sm text-yellow-700 space-y-1">
-                <li>• Ensure the receipt clearly shows the transaction ID and amount</li>
-                <li>• Receipt must be clear and readable</li>
-                <li>• Processing will begin after payment verification</li>
-                <li>• You will receive a confirmation email once verified</li>
+                <li>• This is a test page without authentication requirements</li>
+                <li>• Receipt will be stored in database if upload succeeds</li>
+                <li>• Check revenue dashboard to see uploaded receipts</li>
+                <li>• Console will show upload progress</li>
               </ul>
             </div>
           </CardContent>

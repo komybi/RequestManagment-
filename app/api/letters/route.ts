@@ -12,9 +12,12 @@ export async function GET(request: NextRequest) {
 
     await dbConnect();
 
-    // Fetch only requests that have letters generated
+    // Fetch only requests that have letters generated OR payment receipts uploaded
     const letters = await Request.find({
-      revenueLetterContent: { $exists: true, $ne: null }
+      $or: [
+        { revenueLetterContent: { $exists: true, $ne: null } },
+        { paymentReceiptPath: { $exists: true, $ne: null } }
+      ]
     })
     .populate('studentId', 'name email studentId')
     .sort({ revenueLetterSentAt: -1 })
@@ -34,7 +37,7 @@ export async function GET(request: NextRequest) {
       program: letter.program || '',
       academicYear: letter.academicYear || '',
       sentToRevenueAt: letter.sentToRevenueAt,
-      status: 'Sent to Student',
+      status: letter.revenueLetterContent ? 'Letter Sent' : (letter.paymentReceiptPath ? 'Receipt Uploaded' : 'Payment Pending'),
       paymentRequested: letter.paymentRequested || false,
       paymentAmount: letter.paymentAmount,
       paymentAccountDetails: letter.paymentAccountDetails,
